@@ -1,0 +1,63 @@
+name: Build-Release-Images
+on:
+  workflow_dispatch: {}
+jobs:
+  build-release-images:
+    name: Build and Release Firmware Images
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Build firmware images
+        run: 'make images CURL_OPTS="-s"'
+      - name: Delete old release assets
+        uses: mknejp/delete-release-assets@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: snapshot
+          fail-if-no-assets: false
+          assets: "*"
+      - name: Get latest release
+        uses: octokit/request-action@v2.x
+        id: get_latest_release
+        with:
+          route: GET /repos/:repository/releases/latest
+          repository: ${{ github.repository }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload release asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ fromJson(steps.get_latest_release.outputs.data).upload_url }}
+          asset_path: ./openwrt-imagebuilder-ath79-generic.Linux-x86_64/bin/targets/ath79/generic/openwrt-custom-ath79-generic-tplink_tl-wpa8630p-v2-fullmem-squashfs-factory.bin
+          asset_name: openwrt-custom-ath79-generic-tplink_tl-wpa8630p-v2-fullmem-squashfs-factory.bin
+          asset_content_type: application/octet-stream
+      - name: Upload release asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ fromJson(steps.get_latest_release.outputs.data).upload_url }}
+          asset_path: ./openwrt-imagebuilder-ath79-generic.Linux-x86_64/bin/targets/ath79/generic/openwrt-custom-ath79-generic-tplink_tl-wpa8630p-v2-fullmem-squashfs-sysupgrade.bin
+          asset_name: openwrt-custom-ath79-generic-tplink_tl-wpa8630p-v2-fullmem-squashfs-sysupgrade.bin
+          asset_content_type: application/octet-stream
+      - name: Upload release asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ fromJson(steps.get_latest_release.outputs.data).upload_url }}
+          asset_path: ./openwrt-imagebuilder-ath79-generic.Linux-x86_64/bin/targets/ath79/generic/openwrt-custom-ath79-generic-tplink_tl-wpa8630p-v2-fullmem.manifest
+          asset_name: openwrt-custom-ath79-generic-tplink_tl-wpa8630p-v2-fullmem.manifest
+          asset_content_type: text/plain
+      - name: Upload release asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ fromJson(steps.get_latest_release.outputs.data).upload_url }}
+          asset_path: ./openwrt-imagebuilder-ath79-generic.Linux-x86_64/bin/targets/ath79/generic/sha256sums
+          asset_name: sha256sums
+          asset_content_type: text/plain

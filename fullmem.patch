@@ -1,0 +1,193 @@
+--- tplink-safeloader.c.old
++++ tplink-safeloader.c
+@@ -1723,6 +1723,46 @@
+ 		.last_sysupgrade_partition = "file-system"
+ 	},
+ 
++
++	/** Firmware layout for the TL-WPA8630P v2 (FULLMEM)*/
++	{
++		.id     = "TL-WPA8630P-V2-FULLMEM",
++		.vendor = "",
++		/* Compatible with all WPA8630 P/non-P v2.* across all firmware versions. */
++		.support_list =
++			"SupportList:\n"
++			"{product_name:TL-WPA8630,product_ver:2.0.0,special_id:43410000}\n"	/* CA */
++			"{product_name:TL-WPA8630,product_ver:2.0.0,special_id:45550000}\n"	/* EU */
++			"{product_name:TL-WPA8630,product_ver:2.0.0,special_id:55530000}\n"	/* US */
++			"{product_name:TL-WPA8630P,product_ver:2.0.0,special_id:41550000}\n"	/* AU */
++			"{product_name:TL-WPA8630P,product_ver:2.0.0,special_id:44450000}\n"	/* DE */
++			"{product_name:TL-WPA8630P,product_ver:2.0.0,special_id:45550000}\n"	/* EU */
++			"{product_name:TL-WPA8630P,product_ver:2.1.0,special_id:41550000}\n"	/* AU */
++			"{product_name:TL-WPA8630P,product_ver:2.1.0,special_id:45550000}\n",	/* EU */
++		.part_trail = 0x00,
++		.soft_ver = NULL,
++
++		/* This erases all stock partitions except for "factory-uboot" and "radio".
++		 * Do not use unless you have a full backup of your existing flash to 
++		 * restore if you later want to revert back to stock.
++		 * 7.8 Mb is available for OpenWRT versus 5.9 Mb using the stock-compatible
++		 * images (tl-wpa8630p-v2-int, tl-wpa8630p-v2.0-eu, etc). */
++		.partitions = {
++			{"factory-uboot", 0x00000, 0x20000},
++			{"firmware", 0x20000, 0x7cbf00},
++			{"soft-version", 0x7ebf00, 0x01000},
++			{"partition-table", 0x7ecf00, 0x02000},
++			{"support-list", 0x7eef00, 0x01000},
++			{"default-mac", 0x7eff00, 0x00020},
++			{"radio", 0x7f0000, 0x10000},
++			{NULL, 0, 0}
++		},
++
++		.first_sysupgrade_partition = "os-image",
++		.last_sysupgrade_partition = "file-system"
++	},
++
++
+ 	/** Firmware layout for the TL-WR1043 v5 */
+ 	{
+ 		.id     = "TLWR1043NV5",
+@@ -2845,6 +2886,8 @@
+ 		const uint8_t extra_para[2] = {0x01, 0x01};
+ 		parts[5] = make_extra_para(info, extra_para,
+ 			sizeof(extra_para));
++	} else if (strcasecmp(info->id, "TL-WPA8630P-V2-FULLMEM") == 0) {
++		parts[5] = read_file("default-mac", "../../../../../default-mac", false, NULL);
+ 	}
+ 
+ 	size_t len;
+
+--- openwrt-imagebuilder-ath79-generic.Linux-x86_64/target/linux/ath79/image/generic-tp-link.mk.old
++++ openwrt-imagebuilder-ath79-generic.Linux-x86_64/target/linux/ath79/image/generic-tp-link.mk
+@@ -617,6 +617,14 @@
+ endef
+ TARGET_DEVICES += tplink_tl-wpa8630p-v2.1-eu
+ 
++define Device/tplink_tl-wpa8630p-v2-fullmem
++  $(Device/tplink_tl-wpa8630p-v2)
++  IMAGE_SIZE := 7983k
++  DEVICE_VARIANT := v2 (FULLMEM)
++  TPLINK_BOARD_ID := TL-WPA8630P-V2-FULLMEM
++endef
++TARGET_DEVICES += tplink_tl-wpa8630p-v2-fullmem
++
+ define Device/tplink_tl-wr1043nd-v1
+   $(Device/tplink-8m)
+   SOC := ar9132
+--- openwrt-imagebuilder-ath79-generic.Linux-x86_64/target/linux/ath79/generic/base-files/etc/hotplug.d/firmware/11-ath10k-caldata.old
++++ openwrt-imagebuilder-ath79-generic.Linux-x86_64/target/linux/ath79/generic/base-files/etc/hotplug.d/firmware/11-ath10k-caldata
+@@ -230,6 +230,7 @@
+ 	tplink,eap225-outdoor-v1|\
+ 	tplink,eap225-v3|\
+ 	tplink,eap225-wall-v2|\
++	tplink,tl-wpa8630p-v2-fullmem|\
+ 	tplink,tl-wpa8630p-v2-int|\
+ 	tplink,tl-wpa8630p-v2.0-eu|\
+ 	tplink,tl-wpa8630p-v2.1-eu)
+--- openwrt-imagebuilder-ath79-generic.Linux-x86_64/target/linux/ath79/generic/base-files/etc/board.d/02_network.old
++++ openwrt-imagebuilder-ath79-generic.Linux-x86_64/target/linux/ath79/generic/base-files/etc/board.d/02_network
+@@ -373,6 +373,7 @@
+ 			"0@eth0" "1:lan:1" "2:lan:3" "3:lan:2"
+ 		;;
+ 	tplink,tl-wpa8630-v1|\
++	tplink,tl-wpa8630p-v2-fullmem|\
+ 	tplink,tl-wpa8630p-v2-int|\
+ 	tplink,tl-wpa8630p-v2.0-eu|\
+ 	tplink,tl-wpa8630p-v2.1-eu)
+--- /dev/null
++++ openwrt-imagebuilder-ath79-generic.Linux-x86_64/target/linux/ath79/dts/qca9563_tplink_tl-wpa8630p-v2-fullmem.dts
+@@ -0,0 +1,52 @@
++// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
++
++#include "qca9563_tplink_tl-wpa8630.dtsi"
++
++/ {
++	compatible = "tplink,tl-wpa8630p-v2-fullmem", "qca,qca9563";
++	model = "TP-Link WPA8630P v2 (FULLMEM)";
++
++	aliases {
++		label-mac-device = &eth0;
++	};
++};
++
++&partitions {
++	partition@0 {
++		label = "factory-uboot";
++		reg = <0x000000 0x020000>;
++		read-only;
++	};
++
++	partition@20000 {
++		compatible = "tplink,firmware";
++		label = "firmware";
++		reg = <0x020000 0x7cbf00>;
++	};
++
++	partition@7ebf00 {
++		label = "tplink";
++		reg = <0x7ebf00 0x004000>;
++		read-only;
++	};
++
++	info: partition@7eff00 {
++		label = "info";
++		reg = <0x7eff00 0x000020>;
++		read-only;
++	};
++
++	art: partition@7f0000 {
++		label = "art";
++		reg = <0x7f0000 0x010000>;
++		read-only;
++	};
++};
++
++&eth0 {
++	mtd-mac-address = <&info 0x8>;
++};
++
++&wmac {
++	mtd-mac-address = <&info 0x8>;
++};
+--- openwrt-imagebuilder-ath79-generic.Linux-x86_64/.targetinfo.old
++++ openwrt-imagebuilder-ath79-generic.Linux-x86_64/.targetinfo
+@@ -3983,14 +3983,28 @@
+ Target-Profile-Description:
+ Build firmware images for TP-Link TL-WPA8630 v1
+ 
+ 
+ 
+ @@
+ 
++Target-Profile: DEVICE_tplink_tl-wpa8630p-v2-fullmem
++Target-Profile-Name: TP-Link TL-WPA8630P v2 (FULLMEM)
++Target-Profile-Packages: kmod-ath10k-ct ath10k-firmware-qca9888-ct 
++Target-Profile-hasImageMetadata: 1
++Target-Profile-SupportedDevices: tplink,tl-wpa8630p-v2-fullmem
++
++
++Target-Profile-Description:
++Build firmware images for TP-Link TL-WPA8630P v2 (FULLMEM)
++
++
++
++@@
++
+ Target-Profile: DEVICE_tplink_tl-wpa8630p-v2-int
+ Target-Profile-Name: TP-Link TL-WPA8630P v2 (Int.)
+ Target-Profile-Packages: kmod-ath10k-ct ath10k-firmware-qca9888-ct 
+ Target-Profile-hasImageMetadata: 1
+ Target-Profile-SupportedDevices: tplink,tl-wpa8630p-v2-int
+ 
+ 
+--- openwrt-imagebuilder-ath79-generic.Linux-x86_64/.config.old
++++ openwrt-imagebuilder-ath79-generic.Linux-x86_64/.config
+@@ -752,6 +752,8 @@
+ CONFIG_TARGET_DEVICE_PACKAGES_ath79_generic_DEVICE_tplink_tl-wdr7500-v3=""
+ CONFIG_TARGET_DEVICE_ath79_generic_DEVICE_tplink_tl-wpa8630-v1=y
+ CONFIG_TARGET_DEVICE_PACKAGES_ath79_generic_DEVICE_tplink_tl-wpa8630-v1=""
++CONFIG_TARGET_DEVICE_ath79_generic_DEVICE_tplink_tl-wpa8630p-v2-fullmem=y
++CONFIG_TARGET_DEVICE_PACKAGES_ath79_generic_DEVICE_tplink_tl-wpa8630p-v2-fullmem=""
+ CONFIG_TARGET_DEVICE_ath79_generic_DEVICE_tplink_tl-wpa8630p-v2-int=y
+ CONFIG_TARGET_DEVICE_PACKAGES_ath79_generic_DEVICE_tplink_tl-wpa8630p-v2-int=""
+ CONFIG_TARGET_DEVICE_ath79_generic_DEVICE_tplink_tl-wpa8630p-v2.0-eu=y
