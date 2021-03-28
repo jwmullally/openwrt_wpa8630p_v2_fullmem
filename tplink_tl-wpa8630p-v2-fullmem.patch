@@ -1,5 +1,5 @@
---- tools/firmware-utils/src/tplink-safeloader.c.old
-+++ tools/firmware-utils/src/tplink-safeloader.c
+--- a/tools/firmware-utils/src/tplink-safeloader.c
++++ b/tools/firmware-utils/src/tplink-safeloader.c
 @@ -1723,6 +1723,46 @@
  		.last_sysupgrade_partition = "file-system"
  	},
@@ -57,8 +57,8 @@
  
  	size_t len;
 
---- target/linux/ath79/image/generic-tp-link.mk.old
-+++ target/linux/ath79/image/generic-tp-link.mk
+--- a/target/linux/ath79/image/generic-tp-link.mk
++++ b/target/linux/ath79/image/generic-tp-link.mk
 @@ -617,6 +617,14 @@
  endef
  TARGET_DEVICES += tplink_tl-wpa8630p-v2.1-eu
@@ -74,8 +74,8 @@
  define Device/tplink_tl-wr1043nd-v1
    $(Device/tplink-8m)
    SOC := ar9132
---- target/linux/ath79/generic/base-files/etc/hotplug.d/firmware/11-ath10k-caldata.old
-+++ target/linux/ath79/generic/base-files/etc/hotplug.d/firmware/11-ath10k-caldata
+--- a/target/linux/ath79/generic/base-files/etc/hotplug.d/firmware/11-ath10k-caldata
++++ b/target/linux/ath79/generic/base-files/etc/hotplug.d/firmware/11-ath10k-caldata
 @@ -230,6 +230,7 @@
  	tplink,eap225-outdoor-v1|\
  	tplink,eap225-v3|\
@@ -84,8 +84,8 @@
  	tplink,tl-wpa8630p-v2-int|\
  	tplink,tl-wpa8630p-v2.0-eu|\
  	tplink,tl-wpa8630p-v2.1-eu)
---- target/linux/ath79/generic/base-files/etc/board.d/02_network.old
-+++ target/linux/ath79/generic/base-files/etc/board.d/02_network
+--- a/target/linux/ath79/generic/base-files/etc/board.d/02_network
++++ b/target/linux/ath79/generic/base-files/etc/board.d/02_network
 @@ -373,6 +373,7 @@
  			"0@eth0" "1:lan:1" "2:lan:3" "3:lan:2"
  		;;
@@ -95,7 +95,7 @@
  	tplink,tl-wpa8630p-v2.0-eu|\
  	tplink,tl-wpa8630p-v2.1-eu)
 --- /dev/null
-+++ target/linux/ath79/dts/qca9563_tplink_tl-wpa8630p-v2-fullmem.dts
++++ b/target/linux/ath79/dts/qca9563_tplink_tl-wpa8630p-v2-fullmem.dts
 @@ -0,0 +1,52 @@
 +// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
 +

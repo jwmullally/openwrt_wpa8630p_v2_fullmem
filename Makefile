@@ -8,6 +8,7 @@ SUBTARGET := generic
 SOC := qca9563
 BUILDER := openwrt-imagebuilder-$(BOARD)-$(SUBTARGET).Linux-x86_64
 PROFILE := tplink_tl-wpa8630p-v2-fullmem
+DEVICE_DTS := $(SOC)_$(PROFILE)
 PACKAGES := iw luci luci-app-commands open-plc-utils-plctool open-plc-utils-plcrate open-plc-utils-hpavkeys
 EXTRA_IMAGE_NAME := custom
 
@@ -32,7 +33,7 @@ $(BUILDER): $(BUILDER).tar.xz
 	curl $(ALL_CURL_OPTS) "https://git.openwrt.org/?p=openwrt/openwrt.git;hb=refs/heads/master;a=blob_plain;f=tools/firmware-utils/src/md5.h" -o $(BUILDER)/tools/firmware-utils/src/md5.h
 	
 	# Apply all patches
-	cd $(BUILDER) && patch -p0 < ../$(PROFILE).patch
+	cd $(BUILDER) && patch -p1 < ../$(PROFILE).patch
 	gcc -Wall -o $(TOPDIR)/staging_dir/host/bin/tplink-safeloader $(BUILDER)/tools/firmware-utils/src/tplink-safeloader.c -lcrypto -lssl
 	
 	# Regenerate .targetinfo
@@ -52,17 +53,16 @@ $(KDIR)/$(PROFILE)-kernel.bin: $(BUILDER) linux-include
 	# Build this device's DTB and firmware kernel image. Uses the official kernel build as a base.
 	ln -sf /usr/bin/cpp $(BUILDER)/staging_dir/host/bin/mips-openwrt-linux-musl-cpp
 	cp -Trf linux-include $(KDIR)/linux-$(LINUX_VERSION)/include
-	cd $(BUILDER) && env PATH=$(PATH) make --trace -C target/linux/$(BOARD)/image $(KDIR)/$(PROFILE)-kernel.bin TOPDIR="$(TOPDIR)" INCLUDE_DIR="$(TOPDIR)/include" TARGET_BUILD=1 BOARD="$(BOARD)" SUBTARGET="$(SUBTARGET)" PROFILE="$(PROFILE)" DEVICE_DTS="$(SOC)_$(PROFILE)"
+	cd $(BUILDER) && env PATH=$(PATH) make --trace -C target/linux/$(BOARD)/image $(KDIR)/$(PROFILE)-kernel.bin TOPDIR="$(TOPDIR)" INCLUDE_DIR="$(TOPDIR)/include" TARGET_BUILD=1 BOARD="$(BOARD)" SUBTARGET="$(SUBTARGET)" PROFILE="$(PROFILE)" DEVICE_DTS="$(DEVICE_DTS)"
 
 
 images: $(BUILDER) $(KDIR)/$(PROFILE)-kernel.bin
 	# Use ImageBuilder as normal
 	cd $(BUILDER) && make image PROFILE="$(PROFILE)" EXTRA_IMAGE_NAME="$(EXTRA_IMAGE_NAME)" PACKAGES="$(PACKAGES)"
 	cat $(BUILDER)/bin/targets/$(BOARD)/$(SUBTARGET)/sha256sums
-	ls -hs $(BUILDER)/bin/targets/$(BOARD)/$(SUBTARGET)/openwrt-$(EXTRA_IMAGE_NAME)-*-factory.bin
+	ls -hs $(BUILDER)/bin/targets/$(BOARD)/$(SUBTARGET)/openwrt-*.bin
 
 
 clean:
-	rm -rf openwrt-imagebuilder-ath79-generic.Linux-x86_64
-	rm -rf openwrt-imagebuilder-ath79-generic.Linux-x86_64.tar.xz
+	rm -rf openwrt-imagebuilder-*
 	rm -rf linux-include
