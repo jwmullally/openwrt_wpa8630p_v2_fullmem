@@ -26,6 +26,18 @@ Where to find this information:
   * Example: `Model: TL-WPA8630P(EU) Ver: 2.0`
 
 
+## Downloads
+
+See the **Releases** section for the latest builds.
+
+These are built with the OpenWRT ImageBuilder using [this Github workflow](./.github/workflows/build_release_images.yml). You can see the build logs (including checksums) in the **Actions** section.
+
+
+## Upgrades
+
+When new OpenWRT releases are made, you will need to get the latest build from here, or build it yourself following the [Building](#Building) section below. The official images have different partition layouts, and forcibly flashing them after flashing this image will brick your device.
+
+
 ## Details
 
 ### Partition layout
@@ -87,13 +99,6 @@ make
 ```
 
 
-## Downloads
-
-See the **Releases** section for the latest builds.
-
-These are built with the OpenWRT ImageBuilder using [this Github workflow](./.github/workflows/build_release_images.yml). You can see the build logs (including checksums) in the **Actions** section.
-
-
 ## Building
 
 If you want to build the firmwares yourself, checkout this repo and do the following:
@@ -101,11 +106,6 @@ If you want to build the firmwares yourself, checkout this repo and do the follo
 ```bash
 make
 ```
-
-
-## Upgrades
-
-When new OpenWRT releases are made, you will need to get the latest build from here, or build it yourself following the [Building](#Building) section below. The official images have different partition layouts, and forcibly flashing them after flashing this image will brick your device.
 
 
 ## Issues
