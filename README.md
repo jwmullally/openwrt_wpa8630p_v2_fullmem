@@ -119,7 +119,7 @@ Feel free to fork this repository for other devices. This uses Github to build a
 
 * Uses [ImageBuilder](https://openwrt.org/docs/guide-user/additional-software/imagebuilder) and official OpenWRT signed kernel
 * Uses existing OpenWRT firmware Makefile recipes
-* Automated building and file serving with GitHub
+* Automated building and file serving with GitHub (just add a new git tag to make a build)
 * Public build logs (with checksums)
 * Open-source patches compatible with upstream OpenWRT source
 * User reproducible builds for people wary of random binaries from the internet
