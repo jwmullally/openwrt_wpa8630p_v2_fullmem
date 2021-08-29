@@ -17,7 +17,10 @@ jobs:
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
-          body: "Automated release. Please see the project README.md for more information."
+          body: |
+            Automated release. Please see the project README.md for more information.
+
+            Build logs: <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}>
           prerelease: True
           files: |
             openwrt-imagebuilder-*/bin/targets/*/*/openwrt-*.bin
