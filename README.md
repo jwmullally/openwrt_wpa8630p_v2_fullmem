@@ -1,6 +1,11 @@
+# OpenWRT image for TL-WPA8630P v2: Universal flash layout
+
+[![Build-Release-Images](https://github.com/jwmullally/openwrt_wpa8630p_v2_fullmem/actions/workflows/build_release_images.yml/badge.svg?branch=master)](https://github.com/jwmullally/openwrt_wpa8630p_v2_fullmem/actions/workflows/build_release_images.yml)
+
 ## Overview
 
-This repository adds a build profile for [OpenWRT firmware for the TP-Link TL-WPA8630P v2](https://openwrt.org/toh/tp-link/tp-link_tl-wpa8630p_v2) to use all available flash memory. It irreversibly overwrites built-in device-specific stock partitions. After installing this image, reverting to stock firmware can only be done with a specially crafted firmware image, or restoring a full flash backup using an SPI flash programmer.
+This repository adds a build profile for [OpenWRT firmware for the TP-Link TL-WPA8630P v2](https://openwrt.org/toh/tp-link/tp-link_tl-wpa8630p_v2) to use all available flash memory and support all v2 devices. It irreversibly overwrites built-in device-specific stock partitions. After installing this image, reverting to stock firmware can only be done with a specially crafted firmware image, or restoring a full flash backup using an SPI flash programmer. 
+
 
 **!!! DO NOT USE - CURRENTLY BEING TESTED - WILL BRICK YOUR DEVICE !!!**
 
@@ -85,6 +90,13 @@ These partitions containing data unique to your device will be irretrievably ove
 | `product-info` |
 
 **!!! Make sure you have a full memory backup before proceeding !!!**
+
+
+### Region-specific PLC firmware
+
+The region-specific stock firmware contains a copy of the PLC firmware tuned to that device's Homeplug regulatory region (similar to Wi-Fi regulatory regions). After flashing this custom OpenWRT firmware to the router, the PLC in the user's device will continue to run the last PLC firmware flashed to it. In practice, you should not need to do anything with this and can carry on using the device.
+
+If the user later wants to upgrade this firmware for whatever reason, it is their responsibility to get a copy of the stock TL-WPA8630P v2 firmware matching their region and extract the right region-specific PLC firmware and PIB from it.
 
 
 ### Default MAC address
