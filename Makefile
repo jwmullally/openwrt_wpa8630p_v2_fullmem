@@ -30,8 +30,8 @@ $(BUILDER): $(BUILDER).tar.xz
 	tar -xf $(BUILDER).tar.xz
 	
 	# Fetch firmware utility sources to apply patches
-	curl $(ALL_CURL_OPTS) "https://git.openwrt.org/?p=openwrt/openwrt.git;hb=refs/heads/master;a=blob_plain;f=tools/firmware-utils/src/tplink-safeloader.c" -o $(BUILDER)/tools/firmware-utils/src/tplink-safeloader.c
-	curl $(ALL_CURL_OPTS) "https://git.openwrt.org/?p=openwrt/openwrt.git;hb=refs/heads/master;a=blob_plain;f=tools/firmware-utils/src/md5.h" -o $(BUILDER)/tools/firmware-utils/src/md5.h
+	curl $(ALL_CURL_OPTS) "https://git.openwrt.org/?p=openwrt/openwrt.git;hb=refs/tags/v$(VERSION);a=blob_plain;f=tools/firmware-utils/src/tplink-safeloader.c" -o $(BUILDER)/tools/firmware-utils/src/tplink-safeloader.c
+	curl $(ALL_CURL_OPTS) "https://git.openwrt.org/?p=openwrt/openwrt.git;hb=refs/tags/v$(VERSION);a=blob_plain;f=tools/firmware-utils/src/md5.h" -o $(BUILDER)/tools/firmware-utils/src/md5.h
 	
 	# Apply all patches
 	cd $(BUILDER) && patch -p1 < ../$(PROFILE).patch
