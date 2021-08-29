@@ -30,11 +30,11 @@
 +		 * images (tl-wpa8630p-v2-int, tl-wpa8630p-v2.0-eu, etc). */
 +		.partitions = {
 +			{"factory-uboot", 0x00000, 0x20000},
-+			{"firmware", 0x20000, 0x7cbf00},
-+			{"soft-version", 0x7ebf00, 0x01000},
-+			{"partition-table", 0x7ecf00, 0x02000},
-+			{"support-list", 0x7eef00, 0x01000},
-+			{"default-mac", 0x7eff00, 0x00020},
++			{"firmware", 0x20000, 0x7c0000},
++			{"soft-version", 0x7e0000, 0x01000},
++			{"partition-table", 0x7e1000, 0x02000},
++			{"support-list", 0x7e3000, 0x01000},
++			{"default-mac", 0x7e4000, 0x00020},
 +			{"radio", 0x7f0000, 0x10000},
 +			{NULL, 0, 0}
 +		},
@@ -120,18 +120,18 @@
 +	partition@20000 {
 +		compatible = "tplink,firmware";
 +		label = "firmware";
-+		reg = <0x020000 0x7cbf00>;
++		reg = <0x020000 0x7c0000>;
 +	};
 +
-+	partition@7ebf00 {
++	partition@7e0000 {
 +		label = "tplink";
-+		reg = <0x7ebf00 0x004000>;
++		reg = <0x7e0000 0x004000>;
 +		read-only;
 +	};
 +
-+	info: partition@7eff00 {
++	info: partition@7e4000 {
 +		label = "info";
-+		reg = <0x7eff00 0x000020>;
++		reg = <0x7e4000 0x000020>;
 +		read-only;
 +	};
 +

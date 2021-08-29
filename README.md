@@ -62,10 +62,10 @@ After installing, the device flash layout will look like:
 | `factory-uboot` | `0x00000` | `0x20000` |
 | `os-image` | `0x20000` | `...` |
 | `file-system` | `...` | `...` |
-| `soft-version` | `0x7ebf00` | `0x01000` |
-| `partition-table` | `0x7ecf00` | `0x02000` |
-| `support-list` | `0x7eef00` | `0x01000` |
-| `default-mac` | `0x7eff00` | `0x00020` |
+| `soft-version` | `0x7e0000` | `0x01000` |
+| `partition-table` | `0x7e1000` | `0x02000` |
+| `support-list` | `0x7e3000` | `0x01000` |
+| `default-mac` | `0x7e4000` | `0x00020` |
 | `radio` | `0x7f0000` | `0x10000` |
 
 Only these original stock partitions will be preserved:

@@ -3,13 +3,14 @@
 
 ALL_CURL_OPTS := $(CURL_OPTS) -L --fail --create-dirs
 
+VERSION := 21.02.0-rc4
 BOARD := ath79
 SUBTARGET := generic
 SOC := qca9563
-BUILDER := openwrt-imagebuilder-$(BOARD)-$(SUBTARGET).Linux-x86_64
+BUILDER := openwrt-imagebuilder-$(VERSION)-$(BOARD)-$(SUBTARGET).Linux-x86_64
 PROFILE := tplink_tl-wpa8630p-v2-fullmem
 DEVICE_DTS := $(SOC)_$(PROFILE)
-PACKAGES := iw luci luci-app-commands open-plc-utils-plctool open-plc-utils-plcrate open-plc-utils-hpavkeys
+PACKAGES := luci luci-app-commands open-plc-utils-plctool open-plc-utils-plcrate open-plc-utils-hpavkeys
 EXTRA_IMAGE_NAME := custom
 
 TOPDIR := $(CURDIR)/$(BUILDER)
@@ -22,7 +23,7 @@ all: images
 
 
 $(BUILDER).tar.xz:
-	curl $(ALL_CURL_OPTS) -O https://downloads.openwrt.org/snapshots/targets/$(BOARD)/$(SUBTARGET)/$(BUILDER).tar.xz
+	curl $(ALL_CURL_OPTS) -O https://downloads.openwrt.org/releases/$(VERSION)/targets/$(BOARD)/$(SUBTARGET)/$(BUILDER).tar.xz
 	
 
 $(BUILDER): $(BUILDER).tar.xz
@@ -43,10 +44,11 @@ $(BUILDER): $(BUILDER).tar.xz
 
 linux-include: $(BUILDER)
 	# Fetch DTS include dependencies
-	curl $(ALL_CURL_OPTS) "https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/plain/include/dt-bindings/clock/ath79-clk.h?h=v$(LINUX_VERSION)" -o linux-include/dt-bindings/clock/ath79-clk.h
-	curl $(ALL_CURL_OPTS) "https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/plain/include/dt-bindings/gpio/gpio.h?h=v$(LINUX_VERSION)" -o linux-include/dt-bindings/gpio/gpio.h
-	curl $(ALL_CURL_OPTS) "https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/plain/include/dt-bindings/input/input.h?h=v$(LINUX_VERSION)" -o linux-include/dt-bindings/input/input.h
-	curl $(ALL_CURL_OPTS) "https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/plain/include/uapi/linux/input-event-codes.h?h=v$(LINUX_VERSION)" -o linux-include/dt-bindings/input/linux-event-codes.h
+	curl $(ALL_CURL_OPTS) "https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/plain/include/dt-bindings/clock/ath79-clk.h?h=v$(LINUX_VERSION)" -o linux-include.tmp/dt-bindings/clock/ath79-clk.h
+	curl $(ALL_CURL_OPTS) "https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/plain/include/dt-bindings/gpio/gpio.h?h=v$(LINUX_VERSION)" -o linux-include.tmp/dt-bindings/gpio/gpio.h
+	curl $(ALL_CURL_OPTS) "https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/plain/include/dt-bindings/input/input.h?h=v$(LINUX_VERSION)" -o linux-include.tmp/dt-bindings/input/input.h
+	curl $(ALL_CURL_OPTS) "https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/plain/include/uapi/linux/input-event-codes.h?h=v$(LINUX_VERSION)" -o linux-include.tmp/dt-bindings/input/linux-event-codes.h
+	mv -T linux-include.tmp linux-include
 
 
 $(KDIR)/$(PROFILE)-kernel.bin: $(BUILDER) linux-include
@@ -58,7 +60,7 @@ $(KDIR)/$(PROFILE)-kernel.bin: $(BUILDER) linux-include
 
 images: $(BUILDER) $(KDIR)/$(PROFILE)-kernel.bin
 	# Use ImageBuilder as normal
-	cd $(BUILDER) && make image PROFILE="$(PROFILE)" EXTRA_IMAGE_NAME="$(EXTRA_IMAGE_NAME)" PACKAGES="$(PACKAGES)"
+	cd $(BUILDER) && make image PROFILE="$(PROFILE)" EXTRA_IMAGE_NAME="$(EXTRA_IMAGE_NAME)" PACKAGES="$(PACKAGES)" FILES="$(TOPDIR)/target/linux/$(BOARD)/$(SUBTARGET)/base-files/"
 	cat $(BUILDER)/bin/targets/$(BOARD)/$(SUBTARGET)/sha256sums
 	ls -hs $(BUILDER)/bin/targets/$(BOARD)/$(SUBTARGET)/openwrt-*.bin
 
