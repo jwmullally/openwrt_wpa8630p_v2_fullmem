@@ -20,7 +20,7 @@ jobs:
           body: |
             Automated release. Please see the project README.md for more information.
 
-            Build logs: <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}>
+            [Build logs.](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
           prerelease: True
           files: |
             openwrt-imagebuilder-*/bin/targets/*/*/openwrt-*.bin
