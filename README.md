@@ -65,7 +65,8 @@ After installing, the device flash layout will look like:
 | Partition | Base | Size |
 | --- | ---: | ---: |
 | `factory-uboot` | `0x00000` | `0x20000` |
-| `os-image` | `0x20000` | `...` |
+| `fs-uboot` | `0x20000` | `0x20000` |
+| `os-image` | `0x40000` | `...` |
 | `file-system` | `...` | `...` |
 | `soft-version` | `0x7e0000` | `0x01000` |
 | `partition-table` | `0x7e1000` | `0x02000` |
@@ -89,7 +90,7 @@ These partitions containing data unique to your device will be irretrievably ove
 | `device-id` |
 | `product-info` |
 
-**!!! Make sure you have a full memory backup before proceeding !!!**
+**!!! If you want to restore this device later, make sure you have a full memory backup using a flash programmer before proceeding !!!**
 
 
 ### Region-specific PLC firmware
@@ -103,21 +104,18 @@ If the user later wants to upgrade this firmware for whatever reason, it is thei
 
 Unfortunately, your devices original `defaul-mac` partition will need to be overwritten. A replacement one is included with the address `02:BC:DE:39:E8:32`.
 
-To set your own MAC address, do the following:
-
-```bash
-echo -en "\x02\xBC\xDE\x39\xE8\x32" | dd of=default-mac oflag=seek_bytes seek=8 conv=notrunc
-make
-```
+To set your own MAC address, edit the file [`gen_default_mac.sh`](src/gen_default_mac.sh) before building, or after installation you can edit the `info` partition.
 
 
 ## Building
 
-If you want to build the firmwares yourself, checkout this repo and do the following:
+If you want to build the firmware yourself and change the default packages, checkout this repo and do the following:
 
 ```bash
 make
 ```
+
+Be careful when modifying the base image, as [this device can only be unbricked by opening it up and using a flash programmer](https://openwrt.org/toh/tp-link/tl-wpa8630p_v2#debricking). Unless you are willing to do this, you should stick with the safe and tested images in the releases section of this repository, and add/remove packages from LuCI after installation.
 
 
 ## Issues

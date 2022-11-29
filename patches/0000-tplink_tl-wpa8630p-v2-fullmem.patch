@@ -1,6 +1,6 @@
 --- a/tools/firmware-utils/src/tplink-safeloader.c
 +++ b/tools/firmware-utils/src/tplink-safeloader.c
-@@ -1723,6 +1723,46 @@
+@@ -1723,6 +1723,47 @@
  		.last_sysupgrade_partition = "file-system"
  	},
  
@@ -21,7 +21,7 @@
 +			"{product_name:TL-WPA8630P,product_ver:2.1.0,special_id:41550000}\n"	/* AU */
 +			"{product_name:TL-WPA8630P,product_ver:2.1.0,special_id:45550000}\n",	/* EU */
 +		.part_trail = 0x00,
-+		.soft_ver = NULL,
++		.soft_ver = SOFT_VER_DEFAULT,
 +
 +		/* This erases all stock partitions except for "factory-uboot" and "radio".
 +		 * Do not use unless you have a full backup of your existing flash to 
@@ -30,7 +30,8 @@
 +		 * images (tl-wpa8630p-v2-int, tl-wpa8630p-v2.0-eu, etc). */
 +		.partitions = {
 +			{"factory-uboot", 0x00000, 0x20000},
-+			{"firmware", 0x20000, 0x7c0000},
++			{"fs-uboot", 0x20000, 0x20000},
++			{"firmware", 0x40000, 0x7a0000},
 +			{"soft-version", 0x7e0000, 0x01000},
 +			{"partition-table", 0x7e1000, 0x02000},
 +			{"support-list", 0x7e3000, 0x01000},
@@ -47,26 +48,38 @@
  	/** Firmware layout for the TL-WR1043 v5 */
  	{
  		.id     = "TLWR1043NV5",
-@@ -2845,6 +2886,8 @@
+@@ -2833,7 +2875,7 @@
+
+	size_t i;
+
+-	struct image_partition_entry parts[7] = {};
++	struct image_partition_entry parts[8] = {};
+ 
+ 	struct flash_partition_entry *firmware_partition = NULL;
+ 	struct flash_partition_entry *os_image_partition = NULL;
+@@ -2845,6 +2887,9 @@
  		const uint8_t extra_para[2] = {0x01, 0x01};
  		parts[5] = make_extra_para(info, extra_para,
  			sizeof(extra_para));
 +	} else if (strcasecmp(info->id, "TL-WPA8630P-V2-FULLMEM") == 0) {
-+		parts[5] = read_file("default-mac", "../../../../../default-mac", false, NULL);
++		parts[5] = read_file("fs-uboot", "../../../../extra/fs-uboot", false, NULL);
++		parts[6] = read_file("default-mac", "../../../../extra/default-mac", false, NULL);
  	}
  
  	size_t len;
-
 --- a/target/linux/ath79/image/generic-tp-link.mk
 +++ b/target/linux/ath79/image/generic-tp-link.mk
-@@ -617,6 +617,14 @@
+@@ -617,6 +617,17 @@
  endef
- TARGET_DEVICES += tplink_tl-wpa8630p-v2.1-eu
+ TARGET_DEVICES += tplink_tl-wpa8630-v1
  
 +define Device/tplink_tl-wpa8630p-v2-fullmem
-+  $(Device/tplink_tl-wpa8630p-v2)
-+  IMAGE_SIZE := 7983k
++  $(Device/tplink-safeloader)
++  SOC := qca9563
++  IMAGE_SIZE := 7808k
++  DEVICE_MODEL := TL-WPA8630P
 +  DEVICE_VARIANT := v2 (FULLMEM)
++  DEVICE_PACKAGES := kmod-ath10k-ct ath10k-firmware-qca9888-ct
 +  TPLINK_BOARD_ID := TL-WPA8630P-V2-FULLMEM
 +endef
 +TARGET_DEVICES += tplink_tl-wpa8630p-v2-fullmem
@@ -74,29 +87,33 @@
  define Device/tplink_tl-wr1043nd-v1
    $(Device/tplink-8m)
    SOC := ar9132
---- a/target/linux/ath79/generic/base-files/etc/hotplug.d/firmware/11-ath10k-caldata
-+++ b/target/linux/ath79/generic/base-files/etc/hotplug.d/firmware/11-ath10k-caldata
-@@ -230,6 +230,7 @@
- 	tplink,eap225-outdoor-v1|\
- 	tplink,eap225-v3|\
- 	tplink,eap225-wall-v2|\
-+	tplink,tl-wpa8630p-v2-fullmem|\
- 	tplink,tl-wpa8630p-v2-int|\
- 	tplink,tl-wpa8630p-v2.0-eu|\
- 	tplink,tl-wpa8630p-v2.1-eu)
 --- a/target/linux/ath79/generic/base-files/etc/board.d/02_network
 +++ b/target/linux/ath79/generic/base-files/etc/board.d/02_network
-@@ -373,6 +373,7 @@
+@@ -382,7 +382,8 @@
+ 		ucidef_add_switch "switch0" \
  			"0@eth0" "1:lan:1" "2:lan:3" "3:lan:2"
  		;;
- 	tplink,tl-wpa8630-v1|\
-+	tplink,tl-wpa8630p-v2-fullmem|\
- 	tplink,tl-wpa8630p-v2-int|\
- 	tplink,tl-wpa8630p-v2.0-eu|\
- 	tplink,tl-wpa8630p-v2.1-eu)
+-	tplink,tl-wpa8630-v1)
++	tplink,tl-wpa8630-v1|\
++	tplink,tl-wpa8630p-v2-fullmem)
+ 		# port 5 (internal) is the power-line port
+ 		ucidef_add_switch "switch0" \
+ 			"0@eth0" "2:lan:3" "3:lan:2" "4:lan:1" "5:lan:4"
+--- a/target/linux/ath79/generic/base-files/etc/hotplug.d/firmware/11-ath10k-caldata
++++ b/target/linux/ath79/generic/base-files/etc/hotplug.d/firmware/11-ath10k-caldata
+@@ -228,7 +228,8 @@
+ 		;;
+ 	tplink,eap225-outdoor-v1|\
+ 	tplink,eap225-v3|\
+-	tplink,eap225-wall-v2)
++	tplink,eap225-wall-v2|\
++	tplink,tl-wpa8630p-v2-fullmem)
+ 		caldata_extract "art" 0x5000 0x2f20
+ 		ath10k_patch_mac $(macaddr_add $(mtd_get_mac_binary info 0x8) +1)
+ 		ln -sf /lib/firmware/ath10k/pre-cal-pci-0000\:00\:00.0.bin \
 --- /dev/null
 +++ b/target/linux/ath79/dts/qca9563_tplink_tl-wpa8630p-v2-fullmem.dts
-@@ -0,0 +1,52 @@
+@@ -0,0 +1,57 @@
 +// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
 +
 +#include "qca9563_tplink_tl-wpa8630.dtsi"
@@ -118,9 +135,15 @@
 +	};
 +
 +	partition@20000 {
++		label = "u-boot";
++		reg = <0x020000 0x020000>;
++		read-only;
++	};
++
++	partition@40000 {
 +		compatible = "tplink,firmware";
 +		label = "firmware";
-+		reg = <0x020000 0x7c0000>;
++		reg = <0x040000 0x7a0000>;
 +	};
 +
 +	partition@7e0000 {
@@ -132,7 +155,6 @@
 +	info: partition@7e4000 {
 +		label = "info";
 +		reg = <0x7e4000 0x000020>;
-+		read-only;
 +	};
 +
 +	art: partition@7f0000 {
