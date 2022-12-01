@@ -3,7 +3,7 @@
 
 ALL_CURL_OPTS := $(CURL_OPTS) -L --fail --create-dirs
 
-VERSION := 21.02.5
+VERSION := 22.03.2
 BOARD := ath79
 SUBTARGET := generic
 SOC := qca9563
